@@ -1,0 +1,1722 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SepsisGuard — Altababa Clinical Pathway</title>
+  <style>
+    /* ── Red Cross / Red Crescent theme ── */
+    :root {
+      --bg: #f7f5f2;
+      --panel: #ffffff;
+      --card: #ffffff;
+      --accent: #cc0000;
+      --accent-hover: #b30000;
+      --muted: #5a5a6e;
+      --danger: #cc0000;
+      --ok: #10b981;
+      --glass: rgba(204, 0, 0, 0.04);
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+      --border: rgba(204, 0, 0, 0.10);
+      --radius: 12px;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+      background: var(--bg);
+      color: #1a1a2e;
+    }
+    .app {
+      max-width: 1100px;
+      margin: 18px auto;
+      padding: 18px;
+    }
+
+    /* ── layout ── */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    header h1 {
+      font-size: 20px;
+      margin: 0;
+      color: #1a1a2e;
+    }
+    .row {
+      display: flex;
+      gap: 12px;
+    }
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 12px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+    .col {
+      flex: 1;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    input[type=text],
+    input[type=number],
+    select,
+    textarea {
+      width: 100%;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      background: #fafafa;
+      color: #1a1a2e;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: #fff;
+    }
+    button {
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: var(--accent-hover);
+    }
+    button.secondary {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--border);
+    }
+    button.secondary:hover {
+      background: rgba(204, 0, 0, 0.05);
+      border-color: var(--accent);
+    }
+    .small {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .score {
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--accent);
+    }
+    .danger {
+      color: var(--danger);
+    }
+    .ok {
+      color: var(--ok);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .full {
+      grid-column: 1 / -1;
+    }
+    .timer {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .log {
+      max-height: 180px;
+      overflow: auto;
+      background: #fafafa;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+    }
+    .hidden {
+      display: none !important;
+    }
+    .pill {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(204, 0, 0, 0.06);
+      font-size: 13px;
+      color: #1a1a2e;
+    }
+    .section {
+      margin-top: 12px;
+    }
+    .warning {
+      background: rgba(204, 0, 0, 0.04);
+      padding: 8px;
+      border-radius: 8px;
+      border-left: 3px solid var(--accent);
+    }
+    footer {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 12px;
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* ── tabs ── */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .tab {
+      background: #f0eeeb;
+      padding: 8px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      color: #1a1a2e;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .tab:hover {
+      background: #e8e5e0;
+    }
+    .tab.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    /* ── patient list ── */
+    .patient-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .patient-item {
+      padding: 14px;
+      border-radius: var(--radius);
+      background: #fafafa;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      transition: background 0.15s;
+    }
+    .patient-item:hover {
+      background: #f5f3f0;
+    }
+    .patient-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .patient-scores {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .patient-details {
+      display: none;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(0, 0, 0, 0.06);
+    }
+    .patient-details.open {
+      display: block;
+    }
+    .patient-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .trend {
+      font-weight: bold;
+      margin-left: 4px;
+    }
+    .trend-up {
+      color: var(--danger);
+    }
+    .trend-down {
+      color: var(--ok);
+    }
+    .trend-same {
+      color: var(--muted);
+    }
+
+    /* severity pills */
+    .severity-shock {
+      color: #fff;
+      background: var(--danger);
+    }
+    .severity-sepsis {
+      color: #fff;
+      background: #b45309;
+    }
+    .severity-suspected {
+      color: #1a1a2e;
+      background: #fbbf24;
+    }
+    .severity-none {
+      color: #1a1a2e;
+      background: #e5e7eb;
+    }
+
+    /* ── follow‑up table ── */
+    .followup-table-wrap {
+      overflow-x: auto;
+      margin: 10px 0;
+    }
+    .followup-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      border: 1px solid #e5e7eb;
+    }
+    .followup-table th,
+    .followup-table td {
+      padding: 6px 8px;
+      border: 1px solid #e5e7eb;
+      text-align: center;
+      vertical-align: middle;
+    }
+    .followup-table th {
+      background: #f0eeeb;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .followup-table .row-label {
+      font-weight: 500;
+      background: #fafafa;
+      text-align: left;
+      padding-left: 12px;
+      white-space: nowrap;
+    }
+    .followup-table .severity-cell {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    /* comparison (last two) */
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .comparison-item {
+      text-align: center;
+      padding: 8px;
+      background: #fafafa;
+      border-radius: 8px;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+    }
+    .comparison-value {
+      font-weight: bold;
+      font-size: 16px;
+    }
+    .comparison-diff {
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    .improved {
+      color: var(--ok);
+    }
+    .worsened {
+      color: var(--danger);
+    }
+    .unchanged {
+      color: var(--muted);
+    }
+
+    /* ── antibiotic tracker ── */
+    .abx-tracker {
+      margin-top: 12px;
+      border-top: 1px solid rgba(0, 0, 0, 0.06);
+      padding-top: 12px;
+    }
+    .abx-tracker .abx-entry {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      background: #fafafa;
+      padding: 6px 10px;
+      border-radius: 6px;
+      margin-bottom: 4px;
+      font-size: 13px;
+      border-left: 3px solid var(--accent);
+    }
+    .abx-tracker .abx-entry.resistant {
+      border-left-color: var(--danger);
+      background: rgba(204, 0, 0, 0.05);
+    }
+    .abx-tracker .abx-entry .abx-status {
+      font-weight: 600;
+      margin-left: auto;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+    }
+    .abx-tracker .abx-entry .abx-status.improved {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--ok);
+    }
+    .abx-tracker .abx-entry .abx-status.not-improved {
+      background: rgba(204, 0, 0, 0.10);
+      color: var(--danger);
+    }
+
+    /* ── ICU alarm ── */
+    .icu-alarm {
+      background: rgba(204, 0, 0, 0.06);
+      border: 1px solid var(--danger);
+      padding: 12px;
+      border-radius: 8px;
+      animation: pulse 2s infinite;
+      margin-top: 12px;
+    }
+    @keyframes pulse {
+      0% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.7;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+
+    /* ── org / footer ── */
+    .org-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .org-logos {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .org-logos img {
+      height: 40px;
+      width: auto;
+      object-fit: contain;
+    }
+    .org-logos .logo-srcs {
+      height: 44px;
+    }
+    .org-logos .logo-srcc {
+      height: 38px;
+    }
+    .footer-logos {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+    .footer-logos img {
+      height: 34px;
+      width: auto;
+      object-fit: contain;
+    }
+    .footer-logos .logo-srcs {
+      height: 38px;
+    }
+    .footer-logos .logo-srcc {
+      height: 32px;
+    }
+    .footer-org {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .export-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* ── responsive ── */
+    @media(max-width:900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      .row {
+        flex-direction: column;
+      }
+      .comparison-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .export-buttons {
+        flex-direction: column;
+      }
+      .org-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+    @media(max-width:500px) {
+      .comparison-grid {
+        grid-template-columns: 1fr;
+      }
+      .followup-table th,
+      .followup-table td {
+        padding: 4px 6px;
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- ─── HEADER ─── -->
+    <header>
+      <div class="card" style="padding:12px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;width:100%">
+        <div class="org-header">
+          <div class="org-logos">
+            <img src="SRCS.jpg" alt="Sudanese Red Crescent Society" class="logo-srcs" />
+            <img src="srcc.png" alt="Swedish Red Cross" class="logo-srcc" />
+          </div>
+          <div>
+            <h1>SepsisGuard — Altababa Clinical Pathway</h1>
+            <div class="small">Clinical decision support · Quality Improvement Project · Sudanese Red Crescent Society · Supported by Swedish Red Cross</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ─── SAFETY NOTICE ─── -->
+    <div class="card warning" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L3 20H21L12 2Z" stroke="var(--accent)" stroke-width="2"/>
+          <path d="M12 10V14" stroke="var(--accent)" stroke-width="2"/>
+          <circle cx="12" cy="17" r="1" fill="var(--accent)"/>
+        </svg>
+        <div class="small">
+          <strong>SAFETY NOTICE:</strong> This tool supports clinical decisions but does not replace professional judgment. Verify all calculations and recommendations.
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── TABS ─── -->
+    <div class="tabs">
+      <div class="tab active" data-tab="clinical">Clinical Decision</div>
+      <div class="tab" data-tab="records">Patient Records</div>
+    </div>
+
+    <!-- ─── CLINICAL TAB ─── -->
+    <div id="clinicalTab" class="tab-content">
+      <main class="row" style="margin-top:12px">
+        <section class="card col">
+          <h3>Patient &amp; Triage</h3>
+          <div class="grid">
+            <div><label>Name</label><input id="name" type="text" placeholder="Patient name" /></div>
+            <div><label>MRN</label><input id="mrn" type="text" placeholder="MRN" /></div>
+            <div><label>Weight (kg)</label><input id="weight" type="number" step="0.1" /></div>
+            <div><label>Height (cm)</label><input id="height" type="number" /></div>
+            <div class="full"><label>Brief History</label><textarea id="history" placeholder="Enter brief history (optional)" rows="2"></textarea></div>
+            <div class="full"><label>Brief Examination Findings</label><textarea id="examination" placeholder="Enter brief examination findings (optional)" rows="2"></textarea></div>
+            <div><label>Temperature (°C)</label><input id="temp" type="number" step="0.1" /></div>
+            <div><label>Heart rate (bpm)</label><input id="hr" type="number" /></div>
+            <div><label>Respiratory rate (bpm)</label><input id="rr" type="number" /></div>
+            <div><label>Systolic BP (mmHg)</label><input id="sbp" type="number" /></div>
+            <div><label>SpO₂ (%)</label><input id="spo2" type="number" /></div>
+            <div><label>GCS (3-15)</label><input id="gcs" type="number" min="3" max="15" /></div>
+            <div><label>Lactate (mmol/L)</label><input id="lactate" type="number" step="0.1" /></div>
+            <div class="full">
+              <label>Other (check where applicable)</label>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <label><input id="recentChemo" type="checkbox" /> Recent chemotherapy</label>
+                <label><input id="indwellingLine" type="checkbox" /> Indwelling line</label>
+                <label><input id="noUrine18" type="checkbox" /> No urine for 18h</label>
+                <label><input id="hypergly" type="checkbox" /> Hyperglycemia &gt;120 (no DM)</label>
+              </div>
+            </div>
+            <div class="full" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <button id="assess" style="flex:1">Assess &amp; Calculate Scores</button>
+              <button id="savePatient" class="secondary">Save Patient</button>
+            </div>
+            <div class="full small">Results: NEWS2 <span id="news2" class="score">-</span> • qSOFA <span id="qsofa" class="score">-</span> • Severity: <span id="severity" class="pill">-</span></div>
+          </div>
+
+          <!-- Comparison Section (inline) -->
+          <div id="comparisonSection" class="section hidden">
+            <h4>Comparison with Previous Assessment</h4>
+            <div id="comparisonContent" class="comparison-grid"></div>
+          </div>
+        </section>
+
+        <!-- ─── RIGHT COLUMN ─── -->
+        <aside class="col">
+          <div id="dynamicArea" class="card">
+            <h3>Clinical Guidance</h3>
+            <div class="small">After clicking <strong>Assess &amp; Calculate Scores</strong>, appropriate guidance modules will appear here.</div>
+            <div id="dynamicContent"></div>
+          </div>
+
+          <!-- Antibiotic Section -->
+          <div id="antibioticSection" class="card section hidden">
+            <h3>Antibiotic Management</h3>
+            <div class="section">
+              <h4>Antibiotic Selection Wizard</h4>
+              <div class="grid">
+                <div><label>Suspected source</label><select id="src"><option value="unknown">Unknown</option><option value="pneumonia">Pneumonia</option><option value="uti">UTI</option><option value="intraab">Intra-abdominal</option><option value="softt">Soft tissue</option><option value="cns">CNS</option></select></div>
+                <div><label>Penicillin allergy?</label><select id="pen"><option value="no">No</option><option value="yes">Yes</option></select></div>
+                <div><label>MDR risk?</label><select id="mdr"><option value="no">No</option><option value="yes">Yes</option></select></div>
+                <div style="grid-column:1/-1"><button id="suggestAbx" class="action">Suggest Regimen</button></div>
+                <div id="abxOut" class="full small"></div>
+              </div>
+            </div>
+            <div class="section">
+              <h4>Antibiotic Dose Calculator</h4>
+              <div class="grid">
+                <div><label>Antibiotic</label><select id="abxSelect"><option value="ceftriaxone">Ceftriaxone</option><option value="vancomycin">Vancomycin</option><option value="gentamicin">Gentamicin</option><option value="pip-taz">Piperacillin-Tazobactam</option></select></div>
+                <div><label>Weight (kg)</label><input id="abxWeight" type="number" step="0.1" placeholder="From patient data" /></div>
+                <div class="full"><button id="calculateDose" class="action">Calculate Dose</button><div id="doseResult" class="small" style="margin-top:8px"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Noradrenaline Section (concentrations 8,16,32) -->
+          <div id="noradrenalineSection" class="card section hidden">
+            <h3>Noradrenaline Rate Calculator</h3>
+            <div class="small" style="margin-bottom:12px">For persistent hypotension requiring vasopressor support</div>
+            <div class="grid">
+              <div><label>Patient Weight (kg)</label><input id="norWeight" type="number" step="0.1" placeholder="From patient data" /></div>
+              <div><label>Fluid Volume (ml)</label><input id="norFluid" type="number" placeholder="e.g., 250 ml" /></div>
+              <div>
+                <label>Noradrenaline Concentration (mg)</label>
+                <select id="norConcentration">
+                  <option value="16">16 mg (Standard)</option>
+                  <option value="32">32 mg (High concentration)</option>
+                  <option value="8">8 mg (Low concentration)</option>
+                </select>
+              </div>
+              <div class="full"><button id="calculateNoradrenaline" class="action">Calculate Noradrenaline Rate</button></div>
+            </div>
+            <div id="norResult" class="section" style="display:none;">
+              <h4>Noradrenaline Infusion Rates</h4>
+              <div class="grid">
+                <div><label>Minimum Rate (0.05 mcg/kg/min)</label><div class="score" id="norMinRate">-</div></div>
+                <div><label>Maximum Rate (1 mcg/kg/min)</label><div class="score" id="norMaxRate">-</div></div>
+              </div>
+              <div id="icuAlarm" class="icu-alarm hidden">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L3 20H21L12 2Z" stroke="var(--danger)" stroke-width="2"/>
+                    <path d="M12 10V14" stroke="var(--danger)" stroke-width="2"/>
+                    <circle cx="12" cy="17" r="1" fill="var(--danger)"/>
+                  </svg>
+                  <div><strong>ICU CONSULTATION REQUIRED</strong><br><span class="small">Persistent hypotension requiring noradrenaline infusion. Immediate ICU team consultation needed.</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Logs -->
+          <div class="card section">
+            <h3>Clinical Documentation</h3>
+            <div id="bundleLogSection" class="section hidden">
+              <h4>Sepsis Bundle Progress</h4>
+              <div id="bundleLog" class="log" style="max-height:120px"></div>
+            </div>
+            <div class="section">
+              <h4>Audit &amp; Event Log</h4>
+              <div id="eventLog" class="log"></div>
+              <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+                <input id="eventText" type="text" placeholder="Note an event or override" style="flex:1" />
+                <button id="addEvent" class="secondary">Add</button>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <!-- ─── RECORDS TAB ─── -->
+    <div id="recordsTab" class="tab-content hidden">
+      <div class="card">
+        <h3>Patient Records</h3>
+        <div class="small" style="margin-bottom:12px">Select a patient to review or add follow-up assessment</div>
+        <div id="patientList" class="patient-list"></div>
+      </div>
+    </div>
+
+    <!-- ─── FOOTER ─── -->
+    <footer>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+        <div>
+          <div class="footer-org">
+            <div class="footer-logos">
+              <img src="SRCS.jpg" alt="Sudanese Red Crescent Society" class="logo-srcs" />
+              <img src="srcc.png" alt="Swedish Red Cross" class="logo-srcc" />
+            </div>
+            <div class="small">
+              <strong>SepsisGuard — Altababa Clinical Pathway</strong><br />
+              Quality Improvement Project · Infection Prevention &amp; Control<br />
+              Sudanese Red Crescent Society · Supported by Swedish Red Cross<br />
+              Developed by Dr. Thoraya Salah Murtada Sidahmed, Health Officer<br />
+              Contact: <a href="mailto:thorayagzzar@gmail.com">thorayagzzar@gmail.com</a><br />
+              <div style="margin-top:4px;color:var(--danger)">
+                <strong>SECURITY:</strong> Data stored locally only · No internet transmission · For authorized users only
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="export-buttons">
+          <button id="exportExcel" class="secondary">Export Excel</button>
+          <button id="exportPDF" class="secondary">Export PDF</button>
+          <button id="clearAll" class="secondary">Clear Data</button>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // ─────────────────────────────────────────────
+    //  UTILITY
+    // ─────────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+
+    function escapeHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+    function log(msg) {
+      const el = $('eventLog');
+      el.innerHTML = `<div>[${new Date().toLocaleString()}] ${escapeHtml(msg)}</div>` + el.innerHTML;
+      localStorage.setItem('eventLog', el.innerHTML);
+    }
+
+    // ─────────────────────────────────────────────
+    //  PATIENT DATA
+    // ─────────────────────────────────────────────
+    function getAllPatients() {
+      return JSON.parse(localStorage.getItem('patients') || '{}');
+    }
+
+    function savePatient(patientData) {
+      const patients = getAllPatients();
+      const patientName = patientData.name?.trim();
+      if (!patientName) return null;
+      const now = new Date().toISOString();
+      const existing = patients[patientName];
+
+      // preserve antibiotic history
+      if (existing && existing.antibioticHistory) {
+        patientData.antibioticHistory = existing.antibioticHistory;
+      } else if (!patientData.antibioticHistory) {
+        patientData.antibioticHistory = [];
+      }
+
+      // preserve resistance flag (manual)
+      if (existing && existing.resistanceFlag !== undefined) {
+        patientData.resistanceFlag = existing.resistanceFlag;
+      } else if (patientData.resistanceFlag === undefined) {
+        patientData.resistanceFlag = false;
+      }
+
+      // ---- NEW: automatic resistance suspicion based on NEWS worsening ----
+      // if there is a previous assessment and NEWS2 increased, set resistanceSuspected = true
+      if (existing && existing.news2 !== undefined && patientData.news2 !== undefined) {
+        if (patientData.news2 > existing.news2) {
+          patientData.resistanceSuspected = true;
+          log(`Resistance suspected for ${patientName} (NEWS worsened from ${existing.news2} to ${patientData.news2})`);
+        } else {
+          // if improved, we could keep previous suspicion or clear? we'll keep it if already set, but we might want to clear? 
+          // we'll keep previous if set, but we can also clear if improved? We'll keep it until manually cleared.
+          // We'll not clear automatically.
+          if (existing.resistanceSuspected !== undefined) {
+            patientData.resistanceSuspected = existing.resistanceSuspected;
+          } else {
+            patientData.resistanceSuspected = false;
+          }
+        }
+      } else {
+        // no previous, set false
+        patientData.resistanceSuspected = false;
+      }
+
+      // build assessment history
+      if (existing) {
+        patientData.previousNEWS = existing.news2;
+        patientData.previousData = {
+          news2: existing.news2,
+          qsofa: existing.qsofa,
+          severity: existing.severity,
+          temp: existing.temp,
+          hr: existing.hr,
+          rr: existing.rr,
+          sbp: existing.sbp,
+          spo2: existing.spo2,
+          gcs: existing.gcs,
+          lactate: existing.lactate,
+          history: existing.history,
+          examination: existing.examination
+        };
+        patientData.assessmentHistory = existing.assessmentHistory || [];
+        patientData.assessmentHistory.push({
+          timestamp: existing.lastUpdated || now,
+          news2: existing.news2,
+          qsofa: existing.qsofa,
+          severity: existing.severity,
+          data: {
+            temp: existing.temp,
+            hr: existing.hr,
+            rr: existing.rr,
+            sbp: existing.sbp,
+            spo2: existing.spo2,
+            gcs: existing.gcs,
+            lactate: existing.lactate,
+            history: existing.history,
+            examination: existing.examination
+          }
+        });
+      } else {
+        patientData.assessmentHistory = patientData.assessmentHistory || [];
+        patientData.previousData = null;
+      }
+
+      patientData.lastUpdated = now;
+      patients[patientName] = patientData;
+      localStorage.setItem('patients', JSON.stringify(patients));
+      return patientName;
+    }
+
+    function deletePatient(name) {
+      const patients = getAllPatients();
+      delete patients[name];
+      localStorage.setItem('patients', JSON.stringify(patients));
+      renderPatientList();
+      log(`Patient discharged: ${name}`);
+    }
+
+    function loadPatientForFollowup(name) {
+      const patients = getAllPatients();
+      const p = patients[name];
+      if (!p) return;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+      $('clinicalTab').classList.remove('hidden');
+      document.querySelector('[data-tab="clinical"]').classList.add('active');
+      ['name', 'mrn', 'weight', 'height', 'history', 'examination'].forEach(f => { if (p[f]) $(f).value = p[f]; });
+      if (p.previousData) showComparison(p.previousData, p);
+      log(`Loaded patient ${name} for follow-up assessment`);
+    }
+
+    // ─────────────────────────────────────────────
+    //  COMPARISON (between last two assessments)
+    // ─────────────────────────────────────────────
+    // This is used in the patient details to show comparison of last two assessments.
+    // We'll call it from renderPatientList.
+    function renderLastTwoComparison(assessmentHistory) {
+      if (!assessmentHistory || assessmentHistory.length < 2) return '';
+      const last = assessmentHistory[assessmentHistory.length - 1];
+      const prev = assessmentHistory[assessmentHistory.length - 2];
+      const metrics = [
+        { key: 'news2', label: 'NEWS2' },
+        { key: 'qsofa', label: 'qSOFA' },
+        { key: 'temp', label: 'Temp (°C)' },
+        { key: 'hr', label: 'HR' },
+        { key: 'rr', label: 'RR' },
+        { key: 'sbp', label: 'SBP' },
+        { key: 'spo2', label: 'SpO₂%' },
+        { key: 'gcs', label: 'GCS' },
+        { key: 'lactate', label: 'Lactate' }
+      ];
+      let html = `<div class="comparison-grid">`;
+      metrics.forEach(m => {
+        const pv = prev.data?.[m.key] ?? prev[m.key];
+        const cv = last.data?.[m.key] ?? last[m.key];
+        let diff = '',
+            cls = 'unchanged';
+        if (pv != null && cv != null && pv !== undefined && cv !== undefined) {
+          const isBetter = (m.key === 'spo2' || m.key === 'gcs') ? cv > pv : cv < pv;
+          if (cv !== pv) {
+            diff = (cv > pv ? '+' : '') + (cv - pv).toFixed?.(1) ?? (cv - pv);
+            cls = isBetter ? 'improved' : 'worsened';
+          }
+        }
+        html += `
+          <div class="comparison-item">
+            <div class="small">${m.label}</div>
+            <div class="comparison-value">${cv ?? '-'}</div>
+            ${diff ? `<div class="comparison-diff ${cls}">${diff}</div>` : ''}
+          </div>
+        `;
+      });
+      html += `</div>`;
+      return html;
+    }
+
+    // ─────────────────────────────────────────────
+    //  EXPORT
+    // ─────────────────────────────────────────────
+    function exportToExcel() {
+      const patients = getAllPatients();
+      if (!Object.keys(patients).length) { alert('No patient data to export'); return; }
+      let csv =
+        'Patient Name,MRN,Weight,History,Examination,Last Updated,NEWS2,qSOFA,Severity,Temp,HR,RR,SBP,SpO2,GCS,Lactate,Risk Factors,Antibiotic History,Resistance Flag,Resistance Suspected\n';
+      Object.entries(patients).forEach(([name, d]) => {
+        const rf = [];
+        if (d.recentChemo) rf.push('Recent chemo');
+        if (d.indwellingLine) rf.push('Indwelling line');
+        if (d.noUrine18) rf.push('Oliguria');
+        if (d.hypergly) rf.push('Hyperglycemia');
+        const abx = (d.antibioticHistory || []).map(a => `${a.antibiotic} ${a.dose || ''} (${a.outcome || 'pending'})`)
+          .join('; ');
+        const row = [
+          `"${name}"`, d.mrn || '', d.weight || '', `"${d.history || ''}"`, `"${d.examination || ''}"`,
+          new Date(d.lastUpdated).toLocaleString(), d.news2 ?? '', d.qsofa ?? '', d.severity || '',
+          d.temp ?? '', d.hr ?? '', d.rr ?? '', d.sbp ?? '', d.spo2 ?? '', d.gcs ?? '', d.lactate ?? '',
+          `"${rf.join(', ')}"`, `"${abx}"`, d.resistanceFlag ? 'RESISTANT' : '', d.resistanceSuspected ? 'YES' : ''
+        ].join(',');
+        csv += row + '\n';
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `SepsisGuard_Export_${new Date().toISOString().split('T')[0]}.csv`;
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      log('Data exported to Excel/CSV format');
+    }
+
+    function exportToPDF() {
+      const patients = getAllPatients();
+      if (!Object.keys(patients).length) { alert('No patient data to export'); return; }
+      const win = window.open('', '_blank');
+      win.document.write(`<!DOCTYPE html><html><head><title>SepsisGuard Export</title>
+          <style>body{font-family:Arial;margin:20px}h1{color:#cc0000;border-bottom:2px solid #cc0000;padding-bottom:10px}
+          .patient{margin-bottom:20px;padding:15px;border:1px solid #ddd;border-radius:5px}
+          .patient-header{background:#f5f3f0;padding:10px;margin:-15px -15px 15px -15px;border-bottom:2px solid #cc0000}
+          .scores{display:flex;gap:20px;margin:10px 0}.score-item{padding:5px 10px;background:#f0eeeb;border-radius:3px}
+          .vitals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+          .org{display:flex;gap:12px;align-items:center;margin:12px 0}.org img{height:36px;width:auto}
+          @media print{body{margin:0}.patient{break-inside:avoid}}
+</style></head><body>
+  <div class="org"><img src="SRCS.jpg" style="height:40px"/><img src="srcc.png" style="height:34px"/>
+    <div><h1>SepsisGuard — Export</h1><p>Sudanese Red Crescent Society · Supported by Swedish Red Cross</p></div>
+  </div>
+  <p>Generated: ${new Date().toLocaleString()} | Developed by Dr. Thoraya Salah Murtada Sidahmed</p><hr>`);
+Object.entries(patients).forEach(([name, d]) => {
+    const rf = [];
+    if (d.recentChemo) rf.push('Recent chemo');
+    if (d.indwellingLine) rf.push('Indwelling line');
+    if (d.noUrine18) rf.push('Oliguria');
+    if (d.hypergly) rf.push('Hyperglycemia');
+    const abx = (d.antibioticHistory || []).map(a =>
+        `${a.antibiotic} ${a.dose || ''} → ${a.outcome || 'pending'}`
+    ).join('<br>');
+    win.document.write(`
+      <div class="patient">
+        <div class="patient-header"><h2>${escapeHtml(name)}</h2><p>MRN: ${d.mrn||'N/A'} | Last Updated: ${new Date(d.lastUpdated).toLocaleString()}</p></div>
+        ${d.history ? `<p><strong>History:</strong> ${escapeHtml(d.history)}</p>` : ''}
+        ${d.examination ? `<p><strong>Examination:</strong> ${escapeHtml(d.examination)}</p>` : ''}
+        <div class="scores">
+          <div class="score-item">NEWS2: <strong>${d.news2??'-'}</strong></div>
+          <div class="score-item">qSOFA: <strong>${d.qsofa??'-'}</strong></div>
+          <div class="score-item">Severity: <strong>${d.severity||'-'}</strong></div>
+        </div>
+        <div class="vitals">
+          <div>Temp: ${d.temp??'-'}°C</div><div>HR: ${d.hr??'-'} bpm</div><div>RR: ${d.rr??'-'} bpm</div>
+          <div>SBP: ${d.sbp??'-'} mmHg</div><div>SpO₂: ${d.spo2??'-'}%</div><div>GCS: ${d.gcs??'-'}</div>
+          <div>Lactate: ${d.lactate??'-'} mmol/L</div><div>Weight: ${d.weight??'-'} kg</div>
+        </div>
+        <p><strong>Risk Factors:</strong> ${rf.length ? rf.join(', ') : 'None'}</p>
+        ${abx ? `<p><strong>Antibiotic History:</strong><br>${abx}</p>` : ''}
+        ${d.resistanceFlag ? `<p style="color:var(--danger);font-weight:bold">⚠ RESISTANCE FLAGGED</p>` : ''}
+        ${d.resistanceSuspected ? `<p style="color:#b45309;font-weight:bold">⚠ RESISTANCE SUSPECTED (NEWS worsened)</p>` : ''}
+        ${(d.assessmentHistory||[]).length ? `<p><strong>Assessment History:</strong></p><ul>
+          ${d.assessmentHistory.slice(-5).map(a =>
+            `<li>${new Date(a.timestamp).toLocaleString()}: NEWS ${a.news2} (${a.severity})</li>`
+          ).join('')}</ul>` : ''}
+      </div><hr>
+    `);
+  });
+  win.document.write('</body></html>');
+  win.document.close();
+  setTimeout(() => { win.print(); log('Data exported to PDF format'); }, 500);
+}
+
+// ─────────────────────────────────────────────
+//  TABS
+// ─────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+    tab.classList.add('active');
+    $(tab.dataset.tab + 'Tab').classList.remove('hidden');
+    if (tab.dataset.tab === 'records') renderPatientList();
+  });
+});
+
+// ─────────────────────────────────────────────
+//  RENDER PATIENT LIST  (redesigned with table)
+// ─────────────────────────────────────────────
+function renderPatientList() {
+  const container = $('patientList');
+  const patients = getAllPatients();
+  if (!Object.keys(patients).length) {
+    container.innerHTML = '<div class="small">No patients recorded yet. Use the Clinical Decision tab to assess patients.</div>';
+    return;
+  }
+  container.innerHTML = '';
+  Object.entries(patients).sort((a,b) => new Date(b[1].lastUpdated) - new Date(a[1].lastUpdated))
+    .forEach(([name, data]) => {
+      const trend = data.previousNEWS !== undefined
+        ? (data.news2 > data.previousNEWS ? '↑' : data.news2 < data.previousNEWS ? '↓' : '→')
+        : '→';
+      const trendClass = trend === '↑' ? 'trend-up' : trend === '↓' ? 'trend-down' : 'trend-same';
+
+      let severityClass = 'severity-none';
+      if (data.severity?.includes('SHOCK')) severityClass = 'severity-shock';
+      else if (data.severity?.includes('SEPSIS') && !data.severity?.includes('SUSPECTED')) severityClass = 'severity-sepsis';
+      else if (data.severity?.includes('SUSPECTED')) severityClass = 'severity-suspected';
+
+      const item = document.createElement('div');
+      item.className = 'patient-item';
+      // Build the patient header
+      let headerHtml = `
+        <div class="patient-header">
+          <div>
+            <strong>${escapeHtml(name)}</strong>
+            <div class="small">Last updated: ${new Date(data.lastUpdated).toLocaleString()}</div>
+          </div>
+          <div class="patient-scores">
+            <div>NEWS: <span class="score">${data.news2??'-'}</span> <span class="trend ${trendClass}">${trend}</span></div>
+            <div>qSOFA: <span class="score">${data.qsofa??'-'}</span></div>
+            <div class="pill ${severityClass}">${data.severity||'-'}</div>
+            ${data.resistanceFlag ? '<span class="pill severity-shock" style="font-size:11px">⚠ RESISTANCE</span>' : ''}
+            ${data.resistanceSuspected ? '<span class="pill severity-suspected" style="font-size:11px">⚠ SUSPECTED</span>' : ''}
+          </div>
+        </div>
+      `;
+      item.innerHTML = headerHtml;
+
+      // Details container
+      const details = document.createElement('div');
+      details.className = 'patient-details';
+
+      // Demographics
+      let demoHtml = `
+        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px;font-size:13px">
+          <span><strong>MRN:</strong> ${data.mrn||'N/A'}</span>
+          <span><strong>Weight:</strong> ${data.weight??'N/A'} kg</span>
+          <span><strong>Height:</strong> ${data.height??'N/A'} cm</span>
+        </div>
+        ${data.history ? `<div style="margin-bottom:6px;font-size:13px"><strong>History:</strong> ${escapeHtml(data.history)}</div>` : ''}
+        ${data.examination ? `<div style="margin-bottom:10px;font-size:13px"><strong>Examination:</strong> ${escapeHtml(data.examination)}</div>` : ''}
+        <div style="margin-bottom:10px;font-size:13px">
+          <strong>Risk Factors:</strong> ${getRiskFactorsText(data)}
+        </div>
+      `;
+      details.innerHTML = demoHtml;
+
+      // ─── TABLE OF FOLLOW-UPS ───
+      const assessments = data.assessmentHistory || [];
+      if (assessments.length > 0) {
+        let tableHtml = `<div class="followup-table-wrap"><table class="followup-table"><thead><tr><th>Assessment</th>`;
+        // columns: each assessment
+        assessments.forEach((a, idx) => {
+          const dt = new Date(a.timestamp);
+          tableHtml += `<th>#${idx+1}<br>${dt.toLocaleDateString()}<br>${dt.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</th>`;
+        });
+        tableHtml += `</tr></thead><tbody>`;
+        // rows: vitals and scores
+        const rows = [
+          { label: 'NEWS2', key: 'news2' },
+          { label: 'qSOFA', key: 'qsofa' },
+          { label: 'Severity', key: 'severity' },
+          { label: 'Temp (°C)', key: 'temp' },
+          { label: 'HR (bpm)', key: 'hr' },
+          { label: 'RR (bpm)', key: 'rr' },
+          { label: 'SBP (mmHg)', key: 'sbp' },
+          { label: 'SpO₂ (%)', key: 'spo2' },
+          { label: 'GCS', key: 'gcs' },
+          { label: 'Lactate (mmol/L)', key: 'lactate' }
+        ];
+        rows.forEach(r => {
+          tableHtml += `<tr><td class="row-label">${r.label}</td>`;
+          assessments.forEach(a => {
+            let val = a.data?.[r.key] ?? a[r.key];
+            let display = val !== undefined && val !== null ? val : '-';
+            // for severity, add pill
+            if (r.key === 'severity') {
+              let cls = '';
+              if (String(val).includes('SHOCK')) cls = 'severity-shock';
+              else if (String(val).includes('SEPSIS') && !String(val).includes('SUSPECTED')) cls = 'severity-sepsis';
+              else if (String(val).includes('SUSPECTED')) cls = 'severity-suspected';
+              else cls = 'severity-none';
+              display = `<span class="pill ${cls}" style="font-size:11px;padding:2px 6px">${val || '-'}</span>`;
+            }
+            tableHtml += `<td>${display}</td>`;
+          });
+          tableHtml += `</tr>`;
+        });
+        tableHtml += `</tbody></table></div>`;
+        details.innerHTML += tableHtml;
+
+        // ─── COMPARISON OF LAST TWO SCORES ───
+        if (assessments.length >= 2) {
+          details.innerHTML += `
+            <div style="margin:12px 0 10px;padding:10px;background:#fafafa;border-radius:8px;border:1px solid rgba(0,0,0,0.04)">
+              <strong>Comparison: Last two assessments</strong>
+              ${renderLastTwoComparison(assessments)}
+            </div>
+          `;
+        }
+      }
+
+      // ─── ANTIBIOTIC TRACKER ───
+      let abxHtml = `
+        <div class="abx-tracker">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+            <strong>Antibiotic History</strong>
+            ${data.resistanceFlag ? '<span class="pill severity-shock" style="font-size:11px">⚠ RESISTANCE FLAGGED</span>' : ''}
+            ${data.resistanceSuspected ? '<span class="pill severity-suspected" style="font-size:11px">⚠ SUSPECTED (NEWS worsened)</span>' : ''}
+          </div>
+          <div style="margin:6px 0 10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+            <input id="abxName_${escapeHtml(name)}" type="text" placeholder="Antibiotic" style="width:120px;padding:4px 8px;font-size:12px" />
+            <input id="abxDose_${escapeHtml(name)}" type="text" placeholder="Dose" style="width:80px;padding:4px 8px;font-size:12px" />
+            <input id="abxDate_${escapeHtml(name)}" type="date" style="width:130px;padding:4px 8px;font-size:12px" />
+            <select id="abxOutcome_${escapeHtml(name)}" style="width:120px;padding:4px 8px;font-size:12px">
+              <option value="pending">Pending</option>
+              <option value="improved">Improved</option>
+              <option value="not_improved">Not Improved</option>
+            </select>
+            <button class="secondary add-abx" data-name="${escapeHtml(name)}" style="font-size:12px;padding:4px 10px">Add</button>
+          </div>
+          <div id="abxList_${escapeHtml(name)}">
+            ${(data.antibioticHistory||[]).length === 0 ? '<div class="small">No antibiotics recorded</div>' :
+              (data.antibioticHistory||[]).map(a => `
+                <div class="abx-entry ${a.outcome === 'not_improved' ? 'resistant' : ''}">
+                  <span><strong>${escapeHtml(a.antibiotic)}</strong> ${a.dose ? `(${escapeHtml(a.dose)})` : ''}</span>
+                  <span class="small">${a.date ? new Date(a.date).toLocaleDateString() : ''}</span>
+                  <span class="abx-status ${a.outcome === 'improved' ? 'improved' : a.outcome === 'not_improved' ? 'not-improved' : ''}">
+                    ${a.outcome === 'improved' ? '✓ Improved' : a.outcome === 'not_improved' ? '✗ Not Improved' : '⏳ Pending'}
+                  </span>
+                  ${a.outcome === 'not_improved' ? '<span class="pill severity-shock" style="font-size:10px">RESISTANCE</span>' : ''}
+                </div>
+              `).join('')}
+          </div>
+          ${(data.antibioticHistory||[]).some(a => a.outcome === 'not_improved') ? `
+            <div style="margin-top:6px;padding:6px 10px;background:rgba(204,0,0,0.06);border-radius:6px;font-size:12px;color:var(--danger)">
+              ⚠ <strong>Resistance suspected</strong> — consider alternative antibiotics and infectious disease consult.
+            </div>
+          ` : ''}
+          ${!data.resistanceFlag && (data.antibioticHistory||[]).filter(a => a.outcome === 'not_improved').length >= 2 ? `
+            <div style="margin-top:6px">
+              <button class="secondary flag-resistance" data-name="${escapeHtml(name)}" style="font-size:12px;padding:4px 10px">⛔ Flag as Resistant</button>
+            </div>
+          ` : ''}
+          ${data.resistanceFlag ? `
+            <div style="margin-top:6px">
+              <button class="secondary clear-resistance" data-name="${escapeHtml(name)}" style="font-size:12px;padding:4px 10px">Clear Resistance Flag</button>
+            </div>
+          ` : ''}
+          ${data.resistanceSuspected ? `
+            <div style="margin-top:6px">
+              <button class="secondary clear-suspicion" data-name="${escapeHtml(name)}" style="font-size:12px;padding:4px 10px">Clear Suspicion</button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+      details.innerHTML += abxHtml;
+
+      // ─── ACTIONS ───
+      details.innerHTML += `
+        <div class="patient-actions">
+          <button class="secondary review-patient" data-name="${escapeHtml(name)}">Review Case</button>
+          <button class="followup-patient" data-name="${escapeHtml(name)}">Add Follow-up</button>
+          <button class="secondary delete-patient" data-name="${escapeHtml(name)}">Discharge</button>
+        </div>
+      `;
+
+      item.appendChild(details);
+
+      // toggle details
+      item.querySelector('.patient-header').addEventListener('click', (e) => {
+        if (!e.target.closest('button')) {
+          details.classList.toggle('open');
+        }
+      });
+
+      // review
+      item.querySelector('.review-patient').addEventListener('click', (e) => {
+        e.stopPropagation();
+        loadPatientForFollowup(e.target.dataset.name);
+      });
+
+      // follow-up
+      item.querySelector('.followup-patient').addEventListener('click', (e) => {
+        e.stopPropagation();
+        loadPatientForFollowup(e.target.dataset.name);
+      });
+
+      // delete
+      item.querySelector('.delete-patient').addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (confirm(`Discharge patient ${name}? This will remove them from records.`)) deletePatient(name);
+      });
+
+      // ── add antibiotic ──
+      item.querySelector('.add-abx').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const pName = e.target.dataset.name;
+        const patients = getAllPatients();
+        const patient = patients[pName];
+        if (!patient) return;
+        const abx = document.getElementById(`abxName_${pName}`)?.value?.trim();
+        if (!abx) { alert('Enter antibiotic name'); return; }
+        const dose = document.getElementById(`abxDose_${pName}`)?.value?.trim() || '';
+        const date = document.getElementById(`abxDate_${pName}`)?.value || new Date().toISOString().split('T')[0];
+        const outcome = document.getElementById(`abxOutcome_${pName}`)?.value || 'pending';
+        patient.antibioticHistory = patient.antibioticHistory || [];
+        patient.antibioticHistory.push({ antibiotic: abx, dose, date, outcome });
+        // auto-flag resistance if 2+ not_improved
+        const notImproved = patient.antibioticHistory.filter(a => a.outcome === 'not_improved').length;
+        if (notImproved >= 2) patient.resistanceFlag = true;
+        localStorage.setItem('patients', JSON.stringify(patients));
+        renderPatientList();
+        log(`Antibiotic added for ${pName}: ${abx} (${outcome})`);
+      });
+
+      // ── flag resistance ──
+      const flagBtn = item.querySelector('.flag-resistance');
+      if (flagBtn) {
+        flagBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const pName = e.target.dataset.name;
+          const patients = getAllPatients();
+          if (patients[pName]) {
+            patients[pName].resistanceFlag = true;
+            localStorage.setItem('patients', JSON.stringify(patients));
+            renderPatientList();
+            log(`Resistance flagged for ${pName}`);
+          }
+        });
+      }
+
+      // ── clear resistance ──
+      const clearBtn = item.querySelector('.clear-resistance');
+      if (clearBtn) {
+        clearBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const pName = e.target.dataset.name;
+          const patients = getAllPatients();
+          if (patients[pName]) {
+            patients[pName].resistanceFlag = false;
+            localStorage.setItem('patients', JSON.stringify(patients));
+            renderPatientList();
+            log(`Resistance flag cleared for ${pName}`);
+          }
+        });
+      }
+
+      // ── clear suspicion ──
+      const clearSuspBtn = item.querySelector('.clear-suspicion');
+      if (clearSuspBtn) {
+        clearSuspBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const pName = e.target.dataset.name;
+          const patients = getAllPatients();
+          if (patients[pName]) {
+            patients[pName].resistanceSuspected = false;
+            localStorage.setItem('patients', JSON.stringify(patients));
+            renderPatientList();
+            log(`Resistance suspicion cleared for ${pName}`);
+          }
+        });
+      }
+
+      container.appendChild(item);
+    });
+}
+
+function getRiskFactorsText(d) {
+  const f = [];
+  if (d.recentChemo) f.push('Recent chemo');
+  if (d.indwellingLine) f.push('Indwelling line');
+  if (d.noUrine18) f.push('Oliguria');
+  if (d.hypergly) f.push('Hyperglycemia');
+  return f.length ? f.join(', ') : 'None';
+}
+
+// ─────────────────────────────────────────────
+//  ANTIBIOTIC DOSE CALC
+// ─────────────────────────────────────────────
+function calculateAntibioticDose(abx, weight) {
+  const map = {
+    ceftriaxone: { dose: '1-2 g', freq: 'q24h', notes: 'IV' },
+    vancomycin: { dose: '15-20 mg/kg', freq: 'q8-12h', notes: 'Monitor levels' },
+    gentamicin: { dose: '5-7 mg/kg', freq: 'q24h', notes: 'Once daily dosing' },
+    'pip-taz': { dose: '4.5 g', freq: 'q6-8h', notes: 'Extended infusion for critical illness' }
+  };
+  const info = map[abx];
+  if (!info) return 'Antibiotic not found';
+  let calc = info.dose;
+  if (abx === 'vancomycin' && weight) { const mg = Math.round(weight * 17.5); calc = `${mg} mg (${info.dose})`; }
+  else if (abx === 'gentamicin' && weight) { const mg = Math.round(weight * 6); calc = `${mg} mg (${info.dose})`; }
+  return `${calc} ${info.freq} ${info.notes}`;
+}
+
+// ─────────────────────────────────────────────
+//  NORADRENALINE  (concentrations 8,16,32)  min=0.05
+// ─────────────────────────────────────────────
+function calculateNoradrenalineRate(weight, fluidVolume, concentration) {
+  if (!weight || !fluidVolume || !concentration) return null;
+  // min rate now 0.05 mcg/kg/min (was 0.5)
+  const min = (0.05 * fluidVolume * weight * 60) / (concentration * 1000);
+  const max = (1 * fluidVolume * weight * 60) / (concentration * 1000);
+  return { min: min.toFixed(2), max: max.toFixed(2) };
+}
+
+// ─────────────────────────────────────────────
+//  SCORING
+// ─────────────────────────────────────────────
+function calcNEWS2(temp, hr, rr, sbp, spo2) {
+  let s = 0;
+  if (rr <= 8) s += 3; else if (rr >= 25) s += 3; else if (rr >= 21) s += 2; else if (rr >= 12) s += 1;
+  if (spo2 <= 91) s += 3; else if (spo2 <= 93) s += 2; else if (spo2 <= 95) s += 1;
+  if (temp <= 35.0) s += 3; else if (temp >= 39.1) s += 2; else if (temp >= 38.1 || temp <= 36.0) s += 1;
+  if (sbp <= 90) s += 3; else if (sbp <= 100) s += 2; else if (sbp <= 110) s += 1;
+  if (hr <= 40 || hr >= 131) s += 3; else if (hr >= 111) s += 2; else if (hr >= 91 || hr <= 50) s += 1;
+  return s;
+}
+
+function calcQSOFA(rr, sbp, gcs) {
+  let s = 0;
+  if (rr >= 22) s++;
+  if (gcs < 15) s++;
+  if (sbp <= 100) s++;
+  return s;
+}
+
+function determineSeverity(inputs, news, qsofa) {
+  const red = [];
+  const rec = [];
+  if (inputs.sbp !== null && inputs.sbp < 90) red.push('Hypotension SBP<90');
+  if (inputs.rr !== null && inputs.rr >= 22) red.push('Tachypnea RR≥22');
+  if (inputs.gcs !== null && inputs.gcs < 15) red.push('Altered mentation GCS<15');
+  if (inputs.lactate !== null && inputs.lactate >= 2) red.push('Lactate ≥2 mmol/L');
+  if (inputs.noUrine18) red.push('Oliguria (<0.5 ml/kg/hr for 18h)');
+  if (inputs.spo2 !== null && inputs.spo2 < 90) red.push('Hypoxia SpO2<90%');
+  if (inputs.recentChemo) red.push('Immunocompromised (recent chemo)');
+  if (inputs.indwellingLine) red.push('Indwelling line (infection risk)');
+  if (inputs.hypergly) red.push('Stress hyperglycemia');
+
+  let level = 'NO SEPSIS';
+  let icu = false;
+  const hasPersistentHypotension = inputs.sbp !== null && inputs.sbp < 90;
+  const hasHighLactate = inputs.lactate !== null && inputs.lactate > 2;
+  const hasSepticShock = hasPersistentHypotension && hasHighLactate;
+  const hasSepsis = (qsofa >= 2) || (news >= 5 && red.length > 0);
+  const hasSuspected = (qsofa >= 1 || news >= 3) && red.length > 0;
+
+  if (hasSepticShock) {
+    level = 'SEPTIC SHOCK'; icu = true;
+    rec.push('IMMEDIATE ICU TRANSFER REQUIRED', 'Start vasopressors (Noradrenaline first-line)',
+      'Broad-spectrum antibiotics within 1 hour', 'Fluid resuscitation 30 ml/kg crystalloid',
+      'Source control within 6-12 hours');
+  } else if (hasSepsis) {
+    level = 'SEPSIS'; icu = true;
+    rec.push('URGENT ESCALATION - Consider HDU/ICU', 'Antibiotics within 1 hour',
+      'Fluid resuscitation 20-30 ml/kg', 'Repeat lactate in 2-4 hours', 'Consider source control');
+  } else if (hasSuspected) {
+    level = 'SUSPECTED SEPSIS';
+    rec.push('Monitor closely (vitals Q1-4h)', 'Obtain cultures before antibiotics if possible',
+      'Consider early antibiotics', 'Fluid challenge if indicated');
+  } else {
+    level = 'NO SEPSIS';
+    rec.push('Continue routine monitoring', 'Consider alternative diagnoses');
+  }
+  return { level, redFlags: red, icuAlert: icu, recommendations: rec, qsofa, news2: news };
+}
+
+// ─────────────────────────────────────────────
+//  DYNAMIC MODULES
+// ─────────────────────────────────────────────
+let bundleTimerId = null;
+let bundleStart = null;
+
+function startBundleTimer() {
+  bundleStart = Date.now();
+  localStorage.setItem('bundleStart', bundleStart);
+  if (bundleTimerId) clearInterval(bundleTimerId);
+  bundleTimerId = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - bundleStart) / 1000);
+    const remaining = 60 * 60 - elapsed;
+    const mm = String(Math.floor(Math.abs(remaining) / 60)).padStart(2,'0');
+    const ss = String(Math.abs(remaining) % 60).padStart(2,'0');
+    document.querySelectorAll('.bundle-timer').forEach(x => {
+      x.innerText = (remaining >= 0 ? mm + ':' + ss : '+' + mm + ':' + ss);
+      x.style.color = (remaining < 0 ? 'var(--danger)' : 'var(--accent)');
+    });
+  }, 500);
+}
+
+function clearDynamic() {
+  $('dynamicContent').innerHTML = '';
+  $('bundleLogSection').classList.add('hidden');
+}
+
+function renderSepsisSix() {
+  const container = document.createElement('div');
+  container.className = 'section';
+  container.innerHTML = `
+    <h4>Sepsis Six (1-Hour Bundle for Septic Shock)</h4>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+      <button id="startBundleBtn">Start Bundle Timer</button>
+      <div class="small">Timer: <span class="bundle-timer">60:00</span></div>
+      <div class="small">Progress: <span id="bundleProgress" class="pill">0/6</span></div>
+    </div>
+    <div class="grid">
+      <label class="full"><input type="checkbox" id="c_bloodcult"> Blood cultures (2 sets) before antibiotics</label>
+      <label><input type="checkbox" id="c_lactate"> Lactate measured (repeat if >2 mmol/L)</label>
+      <label><input type="checkbox" id="c_abx"> Broad-spectrum antibiotics given</label>
+      <label><input type="checkbox" id="c_fluids"> IV fluids started (30 ml/kg crystalloid)</label>
+      <label><input type="checkbox" id="c_oxygen"> Oxygen started (target SpO₂ >94%)</label>
+      <label><input type="checkbox" id="c_urine"> Urine output monitoring (aim >0.5 ml/kg/hr)</label>
+    </div>
+    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+      <button id="completeBundleBtn" class="secondary">Mark Bundle Complete</button>
+      <button id="overrideBtn" class="secondary">Override/Delay</button>
+    </div>
+  `;
+  $('dynamicContent').appendChild(container);
+
+  $('startBundleBtn').addEventListener('click', () => { startBundleTimer(); log('Sepsis bundle timer started (1-hour target)'); });
+
+  const checks = ['c_bloodcult','c_lactate','c_abx','c_fluids','c_oxygen','c_urine'];
+  checks.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', () => {
+      const done = checks.filter(i => document.getElementById(i)?.checked).length;
+      const prog = $('bundleProgress');
+      if (prog) prog.innerText = done + '/6';
+      localStorage.setItem('bundleState', JSON.stringify(checks.map(i => document.getElementById(i)?.checked || false)));
+    });
+  });
+
+  $('completeBundleBtn').addEventListener('click', () => {
+    const done = checks.filter(i => document.getElementById(i)?.checked).length;
+    const text = `Bundle marked complete (${done}/6 items)`;
+    $('bundleLog').innerHTML = `<div>[${new Date().toLocaleString()}] ${escapeHtml(text)}</div>` + $('bundleLog').innerHTML;
+    localStorage.setItem('bundleLog', $('bundleLog').innerHTML);
+    log(text);
+  });
+
+  $('overrideBtn').addEventListener('click', () => {
+    const r = prompt('Reason for override/delay:');
+    if (r) {
+      $('bundleLog').innerHTML = `<div>[${new Date().toLocaleString()}] OVERRIDE: ${escapeHtml(r)}</div>` + $('bundleLog').innerHTML;
+      localStorage.setItem('bundleLog', $('bundleLog').innerHTML);
+      log('Bundle override: ' + r);
+    }
+  });
+
+  if (localStorage.getItem('bundleLog')) $('bundleLog').innerHTML = localStorage.getItem('bundleLog');
+  $('bundleLogSection').classList.remove('hidden');
+}
+
+function renderFluidVaso(inputs) {
+  const container = document.createElement('div');
+  container.className = 'section';
+  container.innerHTML = `
+    <h4>Fluid & Vasopressor Guidance</h4>
+    <div class="small">Recommended initial fluid: <strong>${inputs.severity === 'SEPTIC SHOCK' ? '30 ml/kg' : '20 ml/kg'}</strong> crystalloid</div>
+    <div style="margin-top:8px"><label>Weight (kg)</label><input id="calcW" type="number" value="${inputs.weight||''}"></div>
+    <div style="margin-top:6px"><button id="calcFluidBtn" class="action">Calculate Fluid Volume</button> <span id="fluidVol" class="small"></span></div>
+    <div style="margin-top:8px"><label>Post-fluid SBP (mmHg)</label><input id="post_sbp" type="number"></div>
+    <div style="margin-top:6px"><label>Lactate (mmol/L)</label><input id="current_lactate" type="number" step="0.1" value="${inputs.lactate||''}"></div>
+    <div style="margin-top:8px"><button id="assessVasoBtn" class="secondary">Assess for vasopressor need</button><div id="vasoRec" class="small"></div></div>
+  `;
+  $('dynamicContent').appendChild(container);
+
+  $('calcFluidBtn').addEventListener('click', () => {
+    const w = parseFloat($('calcW').value || 0);
+    if (w <= 0) { alert('Enter weight'); return; }
+    const vol = inputs.severity === 'SEPTIC SHOCK' ? Math.round(30 * w) : Math.round(20 * w);
+    $('fluidVol').innerText = `${vol} ml (${inputs.severity === 'SEPTIC SHOCK' ? '30' : '20'} ml/kg)`;
+    log('Fluid calculated: ' + vol + ' ml');
+  });
+
+  $('assessVasoBtn').addEventListener('click', () => {
+    const post = parseFloat($('post_sbp').value || 0);
+    const lac = parseFloat($('current_lactate').value || 0);
+    if ((post > 0 && post < 90) || lac >= 4) {
+      $('vasoRec').innerHTML = 'Vasopressor indicated (Noradrenaline first-line). Prepare ICU transfer.';
+      $('vasoRec').style.color = 'var(--danger)';
+      log('Vasopressor indicated: postSBP=' + post + ' lactate=' + lac);
+      $('noradrenalineSection').classList.remove('hidden');
+    } else {
+      $('vasoRec').innerHTML = 'No vasopressor indicated after fluid bolus; continue monitoring.';
+      $('vasoRec').style.color = 'var(--muted)';
+      log('Vasopressor not indicated: postSBP=' + post + ' lactate=' + lac);
+    }
+  });
+}
+
+function renderMonitoring(sev) {
+  const c = document.createElement('div');
+  c.className = 'section';
+  c.innerHTML = `
+    <h4>Monitoring & Escalation</h4>
+    <div class="small">Suggested: Vital signs ${sev.level === 'SEPTIC SHOCK' ? 'Q15-30 min' : sev.level === 'SEPSIS' ? 'Q1h' : 'Q4h'}, Lactate repeat ${sev.level === 'SEPTIC SHOCK' ? 'Q2h' : sev.level === 'SEPSIS' ? 'Q4h' : 'Q12-24h'}.</div>
+    <ul style="margin-top:8px" id="triggersList"></ul>
+  `;
+  $('dynamicContent').appendChild(c);
+
+  const triggers = [];
+  if (sev.redFlags?.length) sev.redFlags.forEach(r => triggers.push(r));
+  if (sev.qsofa >= 2) triggers.push('qSOFA ≥2 — high mortality risk');
+  if (sev.news2 >= 7) triggers.push('NEWS2 ≥7 — critical illness');
+  else if (sev.news2 >= 5) triggers.push('NEWS2 ≥5 — urgent review needed');
+  const ul = $('triggersList');
+  if (!triggers.length) ul.innerHTML = '<li>No immediate escalation triggers</li>';
+  else triggers.forEach(t => { const li = document.createElement('li'); li.innerText = t; ul.appendChild(li); });
+}
+
+function renderSepsisGuidance(sev) {
+  const container = document.createElement('div');
+  container.className = 'section';
+  let html = `<h4>Sepsis Classification & Management</h4>`;
+  if (sev.icuAlert) {
+    html += `
+      <div class="icu-alarm" style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L3 20H21L12 2Z" stroke="var(--danger)" stroke-width="2"/>
+            <path d="M12 10V14" stroke="var(--danger)" stroke-width="2"/>
+            <circle cx="12" cy="17" r="1" fill="var(--danger)"/>
+          </svg>
+          <div><strong>${sev.level === 'SEPTIC SHOCK' ? 'CRITICAL ALERT: SEPTIC SHOCK' : 'URGENT: SEPSIS'}</strong><br><span class="small">Immediate intervention required</span></div>
+        </div>
+      </div>
+    `;
+  }
+  if (sev.redFlags?.length) {
+    html += `<div class="warning" style="margin-bottom:12px"><strong>Organ Dysfunction Indicators:</strong><ul style="margin:4px 0 0 20px;font-size:12px">${sev.redFlags.map(f => `<li>${f}</li>`).join('')}</ul></div>`;
+  }
+  html += `<div class="card" style="background:#fafafa;padding:12px;margin-bottom:12px;border:1px solid rgba(204,0,0,0.06)"><strong>Recommended Actions:</strong><ul style="margin:8px 0 0 20px;font-size:12px">${sev.recommendations.map(r => `<li>${r}</li>`).join('')}</ul></div>`;
+  if (sev.level === 'SEPTIC SHOCK') {
+    html += `<div class="small" style="color:var(--danger);font-weight:bold"><strong>SEPTIC SHOCK BUNDLE (1-HOUR TARGET):</strong><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px"><div>✓ Measure lactate (repeat if >2)</div><div>✓ Obtain blood cultures before antibiotics</div><div>✓ Administer broad-spectrum antibiotics</div><div>✓ Administer 30 ml/kg crystalloid for hypotension</div><div style="grid-column:1/-1">✓ Apply vasopressors if MAP <65 mmHg during/after fluid</div></div></div>`;
+  } else if (sev.level === 'SEPSIS') {
+    html += `<div class="small" style="color:#b45309"><strong>SEPSIS MANAGEMENT (1-HOUR TARGET):</strong><div style="margin-top:8px">• Antibiotics within 1 hour<br>• Fluid resuscitation if indicated (20-30 ml/kg)<br>• Source identification and control<br>• Monitor for deterioration to septic shock<br>• Consider ICU/HDU referral</div></div>`;
+  }
+  container.innerHTML = html;
+  $('dynamicContent').appendChild(container);
+}
+
+// ─────────────────────────────────────────────
+//  MAIN ASSESS
+// ─────────────────────────────────────────────
+$('assess').addEventListener('click', () => {
+  clearDynamic();
+  const inputs = {
+    name: $('name').value,
+    mrn: $('mrn').value,
+    weight: parseFloat($('weight').value) || null,
+    height: parseFloat($('height').value) || null,
+    history: $('history').value,
+    examination: $('examination').value,
+    temp: parseFloat($('temp').value) || null,
+    hr: parseInt($('hr').value) || null,
+    rr: parseInt($('rr').value) || null,
+    sbp: parseInt($('sbp').value) || null,
+    spo2: parseInt($('spo2').value) || null,
+    gcs: parseInt($('gcs').value) || null,
+    lactate: parseFloat($('lactate').value) || null,
+    recentChemo: $('recentChemo').checked,
+    indwellingLine: $('indwellingLine').checked,
+    noUrine18: $('noUrine18').checked,
+    hypergly: $('hypergly').checked
+  };
+
+  const news = calcNEWS2(inputs.temp || 0, inputs.hr || 0, inputs.rr || 0, inputs.sbp || 0, inputs.spo2 || 0);
+  const qsofa = calcQSOFA(inputs.rr || 0, inputs.sbp || 0, inputs.gcs || 15);
+  const sev = determineSeverity(inputs, news, qsofa);
+
+  $('news2').innerText = news;
+  $('qsofa').innerText = qsofa;
+  $('severity').innerText = sev.level;
+
+  const sevEl = $('severity');
+  sevEl.className = 'pill';
+  if (sev.level === 'SEPTIC SHOCK') sevEl.classList.add('severity-shock');
+  else if (sev.level === 'SEPSIS') sevEl.classList.add('severity-sepsis');
+  else if (sev.level === 'SUSPECTED SEPSIS') sevEl.classList.add('severity-suspected');
+  else sevEl.classList.add('severity-none');
+
+  const patient = Object.assign({}, inputs, { news2: news, qsofa: qsofa, severity: sev.level, icuAlert: sev.icuAlert || false });
+  savePatient(patient);
+  renderPatientList();
+
+  const logMsg = `SEPSIS ASSESSMENT: ${sev.level} (NEWS2=${news}, qSOFA=${qsofa})`;
+  sev.icuAlert ? log(`🚨 ${logMsg} - URGENT ACTION REQUIRED`) : log(logMsg);
+
+  toggleAntibioticSection();
+  toggleNoradrenalineSection(inputs);
+
+  renderSepsisGuidance(sev);
+  if (sev.level === 'SEPTIC SHOCK' || sev.level === 'SEPSIS') renderSepsisSix();
+  if ((inputs.sbp !== null && inputs.sbp < 100) || (inputs.lactate !== null && inputs.lactate >= 2)) {
+    renderFluidVaso(Object.assign({}, inputs, { lactate: inputs.lactate, weight: inputs.weight, severity: sev.level }));
+  }
+  renderMonitoring(sev);
+});
+
+// ─────────────────────────────────────────────
+//  UI HELPERS
+// ─────────────────────────────────────────────
+function toggleAntibioticSection() {
+  const w = parseFloat($('weight').value);
+  if (w) { $('antibioticSection').classList.remove('hidden'); $('abxWeight').value = w; $('norWeight').value = w; }
+  else { $('antibioticSection').classList.add('hidden'); $('noradrenalineSection').classList.add('hidden'); }
+}
+$('weight').addEventListener('input', toggleAntibioticSection);
+
+function toggleNoradrenalineSection(inputs) {
+  if (inputs.sbp !== null && inputs.sbp < 90) {
+    $('noradrenalineSection').classList.remove('hidden');
+    if (inputs.weight) $('norWeight').value = inputs.weight;
+    log('Persistent hypotension detected - noradrenaline calculator activated');
+    return true;
+  } else {
+    $('noradrenalineSection').classList.add('hidden');
+    $('norResult').style.display = 'none';
+    $('icuAlarm').classList.add('hidden');
+    return false;
+  }
+}
+
+// ─────────────────────────────────────────────
+//  EVENT BINDINGS
+// ─────────────────────────────────────────────
+$('savePatient').addEventListener('click', () => {
+  const p = {
+    name: $('name').value,
+    mrn: $('mrn').value,
+    weight: parseFloat($('weight').value) || null,
+    height: parseFloat($('height').value) || null,
+    history: $('history').value,
+    examination: $('examination').value,
+    temp: parseFloat($('temp').value) || null,
+    hr: parseInt($('hr').value) || null,
+    rr: parseInt($('rr').value) || null,
+    sbp: parseInt($('sbp').value) || null,
+    spo2: parseInt($('spo2').value) || null,
+    gcs: parseInt($('gcs').value) || null,
+    lactate: parseFloat($('lactate').value) || null,
+    recentChemo: $('recentChemo').checked,
+    indwellingLine: $('indwellingLine').checked,
+    noUrine18: $('noUrine18').checked,
+    hypergly: $('hypergly').checked,
+    news2: parseInt($('news2').innerText) || null,
+    qsofa: parseInt($('qsofa').innerText) || null,
+    severity: $('severity').innerText
+  };
+  const name = savePatient(p);
+  if (name) { log('Patient saved: ' + name); alert('Patient saved locally.'); renderPatientList(); $('comparisonSection').classList.add('hidden'); }
+});
+
+$('addEvent').addEventListener('click', () => {
+  const t = $('eventText').value.trim();
+  if (!t) return;
+  log(t);
+  $('eventText').value = '';
+});
+
+$('exportExcel').addEventListener('click', exportToExcel);
+$('exportPDF').addEventListener('click', exportToPDF);
+
+$('clearAll').addEventListener('click', () => {
+  if (!confirm('Clear all local data?')) return;
+  localStorage.clear();
+  location.reload();
+});
+
+$('calculateDose').addEventListener('click', () => {
+  const abx = $('abxSelect').value;
+  const w = parseFloat($('abxWeight').value) || parseFloat($('weight').value);
+  if (!w) { alert('Please enter patient weight'); return; }
+  const dose = calculateAntibioticDose(abx, w);
+  $('doseResult').innerHTML = `<strong>Recommended dose:</strong> ${dose}`;
+  log(`Antibiotic calculated: ${abx} - ${dose}`);
+});
+
+$('calculateNoradrenaline').addEventListener('click', () => {
+  const w = parseFloat($('norWeight').value) || parseFloat($('weight').value);
+  const fluid = parseFloat($('norFluid').value);
+  const conc = parseFloat($('norConcentration').value);
+  if (!w || !fluid || !conc) { alert('Please enter weight, fluid volume, and select concentration'); return; }
+  const rates = calculateNoradrenalineRate(w, fluid, conc);
+  if (rates) {
+    $('norMinRate').textContent = rates.min + ' ml/hr';
+    $('norMaxRate').textContent = rates.max + ' ml/hr';
+    $('norResult').style.display = 'block';
+    $('icuAlarm').classList.remove('hidden');
+    log(`Noradrenaline calculated: Min ${rates.min} ml/hr, Max ${rates.max} ml/hr (conc=${conc} mg)`);
+    log('ICU consultation alarm triggered - persistent hypotension requiring noradrenaline');
+  }
+});
+
+$('suggestAbx').addEventListener('click', () => {
+  const s = $('src').value, pen = $('pen').value, mdr = $('mdr').value;
+  let txt = '';
+  if (s === 'pneumonia') {
+    if (mdr === 'no' && pen === 'no') txt = 'Ceftriaxone 1-2 g IV q24h OR Cefotaxime 1-2 g IV q8h + Azithromycin.';
+    else if (mdr === 'yes') txt = 'Piperacillin/Tazobactam 4.5 g IV q8h OR Imipenem/Meropenem. Add MRSA coverage if risk.';
+    else if (pen === 'yes') txt = 'Levofloxacin 500 mg IV q12h or Moxifloxacin.';
+  } else if (s === 'uti') { txt = (mdr === 'yes') ? 'Meropenem/Imipenem for ESBL suspicion' : 'Ceftriaxone 1 g IV q24h or Gentamicin 5 mg/kg IV once daily'; } else if (s === 'intraab') { txt = 'Piperacillin/Tazobactam OR Ceftriaxone + Metronidazole; carbapenem if ESBL suspected.'; } else if (s === 'softt') { txt = (pen === 'no') ? 'Flucloxacillin 2 g IV q6h +/- Metronidazole' : 'Clindamycin or Tigecycline if severe allergy.'; } else if (s === 'cns') { txt = 'Ceftriaxone 2 g IV q12h + Vancomycin; add Ampicillin for Listeria when indicated.'; } else { txt = (mdr === 'yes') ? 'Broad-spectrum: Piperacillin/Tazobactam or Carbapenem + Vancomycin if MRSA suspected' : 'Piperacillin/Tazobactam or Ceftriaxone + Gentamicin'; }
+  $('abxOut').innerText = txt;
+  log('Antibiotic suggestion: ' + txt);
+});
+
+// ─────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────
+window.addEventListener('load', () => {
+  if (localStorage.getItem('eventLog')) $('eventLog').innerHTML = localStorage.getItem('eventLog');
+  renderPatientList();
+});
+</script>
+</body>
+</html>
